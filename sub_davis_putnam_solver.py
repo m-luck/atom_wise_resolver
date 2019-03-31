@@ -88,7 +88,7 @@ def check_succ(clauses: List):
     if len(clauses) == 0: return True
     else: return False
 
-def check_f(uns: bool, clauses: List):
+def check_f(clauses: List):
     '''
     '''
     for clause in clauses:
@@ -107,7 +107,8 @@ def DPLLmod(clauses: List, decisions: Dict, lits: Dict):
     if check_f(clauses): return None
     uns, ucl, ud = singleton_propagation(clauses, decisions)
     uns, ucl, ud = pure_literal_propagation(ucl, ud)
-        
+    
+    uclBackTrack, udBackTrack = ucl.copy(), ud.copy()
     for lit in lits:
         if abs(lit) not in ud:
             new_decision = (abs(lit), True)
@@ -117,8 +118,10 @@ def DPLLmod(clauses: List, decisions: Dict, lits: Dict):
                 return res 
             else:
                 new_decision = (abs(lit), False)
-                uns, ucl, ud = propagate_decision(new_decision, ucl, ud)
+                uns, ucl, ud = propagate_decision(new_decision, uclBackTrack, udBackTrack)
                 res = DPLLmod(ucl, ud, lits)
+                if res != None:
+                    return res
     return None
 
 

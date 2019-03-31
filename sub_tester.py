@@ -1,5 +1,10 @@
 from sub_davis_putnam_solver import *
 
+def test_enumerate_lits(clauses):
+    res = enumerate_literals(clauses)
+    print(res)
+    return res
+
 def test_propagate(new, clauses, decs):
     res = propagate_decision(new, clauses, decs)
     print(res)
@@ -25,11 +30,6 @@ def test_check_f(clauses):
     print(res)
     return res
 
-def test_enumerate_lits(clauses):
-    res = enumerate_literals(clauses)
-    print(res)
-    return res
-
 def test_dpll(clauses, decs, lits):
     res = DPLLmod(clauses, decs, lits)
     print(res)
@@ -49,3 +49,6 @@ if __name__ == "__main__":
         test_propagate((1,True),clauses,test_decs)
         test_sing(clauses,test_decs)
         test_pure(clauses,test_decs)
+        assert test_check_succ([])
+        assert test_check_f([[]])
+        test_dpll(clauses, test_decs, lits)
