@@ -1,66 +1,128 @@
-from sub_parser import *
+import sub_parser as p
+from typing import Dict, List, Tuple
 
-def dpll(self,cnf,l):
-    for item in cnf:
-        if len(item)==1:
-            cnf,l=self.unit_p(cnf,l)
-    if [] in cnf:
-        return False
-    if not cnf:
-        return True
-    s=l
-    t=self.most_common(cnf)
-    cnf1=cnf
-    if t in s:
-        s.remove(t)
-    r1=self.reduced(cnf,t)
-    r2=self.reduced(cnf1,-t)
-    return(self.dpll(r1,s) or self.dpll(r2,s))
+db=True
 
-def unit_p(self,cnf,l):
-    t1=0
-    temp=[]
-    t=cnf
-    s=l
-    for item in t:
-        if len(item)==1:
-            t1=item[0]
-    for item in t:
-        if t1 in item:
-            temp.append(item)
-    if len(temp)>0:
-        t=[x for x in t if x not in temp]
-    for item in cnf:
-        if (t1*-1) in item:
-            temp=[]
-            t.remove(item)
-            t.append([x for x in item if x != -t1])
-    if t1 in s:
-        s.remove(t1)
-    if -t1 in s:
-        s.remove(-t1)
-    return t,s
+def propagate_decision(new_decision: tuple, current_clause_list: List, current_decisions: Dict):
+    '''
+    Propagate decision throughout all remaining clauses.
+    Returns three values of unsatisfiability, updated clauses, and updated decisions.
+    '''
+    target_atom = new_decision[0]
+    target_truth = new_decision[1]
+    updated_clauses = current_clause_list.copy()
+    any_empty_clause = False
+    updated_decisions = current_decisions.copy()
+    updated_decisions[target_atom] = target_truth
+    for i, clause in enumerate(current_clause_list):
+        for lit in clause:
+            updated_clause = clause.copy()
+            if abs(lit) == target_atom:
+                if lit < 0: 
+                    if target_truth == True: 
+                        updated_clause.remove(lit)
+                        updated_clauses.insert(i, updated_clause)
+                        updated_clauses.remove(clause)
+                        if len(clause)==0: any_empty_clause = True
+                    else: 
+                        updated_clauses.remove(clause)
+                        break
+                else: 
+                    if target_truth == False:
+                        updated_clause.remove(lit)
+                        updated_clauses.insert(i, updated_clause)
+                        updated_clauses.remove(clause)
+                        if len(clause)==0: any_empty_clause = True
+                    else: 
+                        updated_clauses.remove(clause)
+                        break
+    return any_empty_clause, updated_clauses, updated_decisions
+
+def singleton_propagation(current_clause_list: List, current_decisions: Dict):
+    '''
+    ucl is Updated Clause List
+    ud is Updated Decision List
+    uns is Unsatisfiability
+
+    If there are any clauses with only one atom, satisfy that clause.
+    Returns ucl, ud, and if it results in uns.
+    '''
+    ucl = current_clause_list.copy()
+    ud = current_decisions.copy()
+    uns = False
+    for clause in current_clause_list:
+        if len(clause) == 1:
+            singleton = clause[0]
+            if singleton < 0:
+                decision = (abs(singleton), False)
+            else:
+                decision = (abs(singleton), True)
+            ud[decision[0]] = decision[1]
+            uns, ucl, ud = propagate_decision(decision, ucl, ud)
+            if uns: break
+    return uns, ucl, ud
+
+def pure_literal_propagation(current_clause_list: List, current_decisions: Dict):
+    '''
+    If a literal appears and no negation of that literal appears anywhere within all the clauses,
+    satisfy that literal.
+    '''
+    ucl = current_clause_list.copy()
+    ud = current_decisions.copy()
+    uns = False
+    lit_cnt = {}
+    for clause in current_clause_list:
+        for lit in clause:
+            lit_cnt[lit] = lit_cnt.get(lit, 0) + 1 # Add to dictionary if exists.
+    for lit in lit_cnt:
+        if -lit not in lit_cnt: # If the negation does not exist in the clauses..
+            decision = (abs(lit), False) if lit < 0 else (abs(lit), True)
+            ud[decision[0]] = decision[1]
+            uns, ucl, ud = propagate_decision(decision, ucl, ud)
+            if uns: break
+    return uns, ucl, ud
     
-def reduced (self,cnf,v):
-    temp=[]
-    t=cnf
-    for item in t:
-        if v in item:
-            temp.append(item)
-    if len(temp)>0:
-        t=[x for x in t if x not in temp]
-    for item in cnf:
-        if (v*-1) in item:
-            temp=[]
-            t.remove(item)
-            t.append([x for x in item if x != -v])
-    #print ("After Reduced",len(self.cnf_l),"\n",cnf)
-    return t
-    
+def check_succ(clauses: List):
+    '''
+    '''
+    if len(clauses) == 0: return True
+    else: return False
 
-def most_common(self,lst):
-    merged = list(itertools.chain(*lst))      #most frequent item
-    if len(merged)>0:
-        return max(set(merged), key=merged.count)
-    else:
-        self.ou=True     #length of senetence is 0
+def check_f(uns: bool, clauses: List):
+    '''
+    '''
+    for clause in clauses:
+        if len(clause) == 0: return True
+    return False
+
+def enumerate_literals(clauses: List):
+    lits = {}
+    for clause in clauses:
+        for lit in clause:
+            lits[lit] = True
+    return lits
+
+def DPLLmod(clauses: List, decisions: Dict, lits: Dict):
+    if check_succ(clauses): return decisions
+    if check_f(clauses): return None
+    uns, ucl, ud = singleton_propagation(clauses, decisions)
+    uns, ucl, ud = pure_literal_propagation(ucl, ud)
+        
+    for lit in lits:
+        if abs(lit) not in ud:
+            new_decision = (abs(lit), True)
+            uns, ucl, ud = propagate_decision(new_decision, ucl, ud)
+            res = DPLLmod(ucl, ud, lits)
+            if res != None:
+                return res 
+            else:
+                new_decision = (abs(lit), False)
+                uns, ucl, ud = propagate_decision(new_decision, ucl, ud)
+                res = DPLLmod(ucl, ud, lits)
+    return None
+
+
+               
+    
+    
+    
