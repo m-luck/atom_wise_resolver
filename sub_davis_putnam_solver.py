@@ -1,7 +1,7 @@
 import sub_parser as p
 from typing import Dict, List, Tuple
 
-db=False
+db=False # For debugging sessions not contained in tests.
 
 def propagate_decision(new_decision: tuple, current_clause_list: List, current_decisions: Dict):
     '''

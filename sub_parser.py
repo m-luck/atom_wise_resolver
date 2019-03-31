@@ -1,6 +1,7 @@
 import sys
+import os
 
-def read_in(path='../memory_cycle_assigner/front_end_output'):
+def read_in(path='../front_end_output'):
     clauses = []
     with open(path, 'r') as f:
         content = f.readlines()
@@ -11,13 +12,20 @@ def read_in(path='../memory_cycle_assigner/front_end_output'):
             clauseCNF = list(map(lambda x: int(x), clauseCNF))
             clauses.append(clauseCNF)
     return clauses
-    
-def read_glossary(path='../memory_cycle_assigner/front_end_output'):
+
+def read_glossary(path=os.path.join(os.pardir, 'front_end_output')):
     glossary = None
-    with open(path, 'r') as f:
-        content = f.read()
-        glossary = content.split('---')[1]
+    try:
+        with open(os.path.join(os.pardir, 'front_end_output'), 'r') as f:
+            try:
+                content = f.read()
+                dic = content.split('---')
+                glossary = ast.literal_eval(dic[1])
+            except:
+                print('Content could not be translated to pure dictionary, contrary to expectation.')
+    except: 
+        print('Error reading the output file. Maybe the previous program (DPLL) broke somewhere.')
     return glossary
-    
+
 if __name__ == '__main__':
     read_in()
