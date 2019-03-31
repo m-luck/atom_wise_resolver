@@ -41,7 +41,8 @@ if __name__ == "__main__":
     except: 
         print("Supply a valid test file.")
     else:
-        clauses = p.read_in(path)
+        # clauses = p.read_in(path)
+        clauses = p.read_in()
 
         lits = test_enumerate_lits(clauses)
 

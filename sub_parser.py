@@ -12,5 +12,12 @@ def read_in(path='../memory_cycle_assigner/front_end_output'):
             clauses.append(clauseCNF)
     return clauses
     
+def read_glossary(path='../memory_cycle_assigner/front_end_output'):
+    glossary = None
+    with open(path, 'r') as f:
+        content = f.read()
+        glossary = content.split('---')[1]
+    return glossary
+    
 if __name__ == '__main__':
     read_in()

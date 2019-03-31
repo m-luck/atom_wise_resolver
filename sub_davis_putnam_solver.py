@@ -1,7 +1,7 @@
 import sub_parser as p
 from typing import Dict, List, Tuple
 
-db=True
+db=False
 
 def propagate_decision(new_decision: tuple, current_clause_list: List, current_decisions: Dict):
     '''
@@ -112,16 +112,19 @@ def DPLLmod(clauses: List, decisions: Dict, lits: Dict):
     for lit in lits:
         if abs(lit) not in ud:
             new_decision = (abs(lit), True)
-            uns, ucl, ud = propagate_decision(new_decision, ucl, ud)
+            uns, ucl, ud = propagate_decision(new_decision, uclBackTrack, udBackTrack)
+            if db: print(new_decision)
             res = DPLLmod(ucl, ud, lits)
             if res != None:
                 return res 
             else:
                 new_decision = (abs(lit), False)
                 uns, ucl, ud = propagate_decision(new_decision, uclBackTrack, udBackTrack)
+                if db: print(new_decision)
                 res = DPLLmod(ucl, ud, lits)
                 if res != None:
                     return res
+                return None
     return None
 
 
