@@ -1,7 +1,8 @@
 import sys
 import os
+import ast
 
-def read_in(path='../front_end_output'):
+def read_in(path='front_end_output'):
     clauses = []
     with open(path, 'r') as f:
         content = f.readlines()
@@ -13,10 +14,10 @@ def read_in(path='../front_end_output'):
             clauses.append(clauseCNF)
     return clauses
 
-def read_glossary(path=os.path.join(os.pardir, 'front_end_output')):
-    glossary = None
+def read_glossary(path='front_end_output'):
+    glossary = {1:1}
     try:
-        with open(os.path.join(os.pardir, 'front_end_output'), 'r') as f:
+        with open(path, 'r') as f:
             try:
                 content = f.read()
                 dic = content.split('---')
